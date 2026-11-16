@@ -1155,3 +1155,42 @@ func TestLoadEnvs_DatabaseDriver(t *testing.T) {
 		}
 	})
 }
+
+// TestFileModeAdvertisesNoAuthorizationServer pins the discovery half of file
+// mode. The protected-resource metadata is what amctl and MCP clients read to
+// decide where to sign in, and in file mode this service issues the tokens it
+// accepts — there is nowhere to send them. Advertising an identity provider
+// anyway sends them through a sign-in whose token is then refused, and the 401
+// names none of that.
+func TestFileModeAdvertisesNoAuthorizationServer(t *testing.T) {
+	base := map[string]string{
+		"DB_HOST": "localhost", "DB_USER": "unit", "DB_PASSWORD": "unit", "DB_NAME": "unit",
+		"OAUTH_AUTHORIZATION_SERVERS": "https://idp.example.com",
+	}
+	setBase := func(t *testing.T) {
+		t.Helper()
+		for k, v := range base {
+			t.Setenv(k, v)
+		}
+	}
+
+	t.Run("file mode drops it", func(t *testing.T) {
+		setBase(t)
+		t.Setenv("AUTH_MODE", "file")
+		t.Setenv("FILE_AUTH_USERS_PATH", "/etc/amp/users.yaml")
+		loadEnvs()
+		if got := GetConfig().OAuthAuthorizationServers; len(got) != 0 {
+			t.Errorf("file mode advertises %v, want none: a client following it gets a token this service refuses", got)
+		}
+	})
+
+	t.Run("idp mode keeps it", func(t *testing.T) {
+		setBase(t)
+		t.Setenv("AUTH_MODE", "idp")
+		loadEnvs()
+		got := GetConfig().OAuthAuthorizationServers
+		if len(got) != 1 || got[0] != "https://idp.example.com" {
+			t.Errorf("idp mode advertises %v, want the configured server", got)
+		}
+	})
+}

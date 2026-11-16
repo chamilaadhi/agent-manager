@@ -134,8 +134,43 @@ OBSERVER_JWKS_URL=http://thunder:${THUNDER_PORT}/oauth2/jwks
 
 Set `AUTH_MODE` alone and every token is refused with a bare `401`.
 
-ThunderID runs in both modes: agent identity uses it either way. `amctl` and the
-MCP endpoints also sign in through ThunderID, so they need `AUTH_MODE=idp`.
+ThunderID runs in both modes: agent identity uses it either way.
+
+### Connecting amctl and MCP clients
+
+Both reach the API with a bearer token; how they get one depends on the mode.
+
+In **idp** mode they discover it. The API's protected-resource metadata points
+at ThunderID, the client opens a browser to sign in, and the token it gets back
+lasts an hour and refreshes itself:
+
+```
+claude mcp add --transport http agent-manager http://localhost:9000/mcp \
+  --client-id am-mcp --callback-port 33418
+```
+
+`--client-id` and `--callback-port` are not free choices: they have to match the
+`am-mcp` OAuth client and the redirect URI that `amp-init` registers in
+ThunderID. The observer has its own client, `am-obs-mcp` on port 33419, with
+only the `amp:observability:*` scopes.
+
+In **file** mode there is no authorization server to discover, so the metadata
+endpoint answers `503 protected resource metadata not configured` and the client
+takes a token you give it:
+
+```
+TOKEN=$(curl -sf -X POST http://localhost:9000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"'"$AMP_ADMIN_PASSWORD"'"}' \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
+
+claude mcp add --transport http agent-manager http://localhost:9000/mcp \
+  --header "Authorization: Bearer $TOKEN"
+```
+
+The endpoint itself behaves the same in both modes — only how the token is
+obtained differs. The token expires after `FILE_AUTH_TOKEN_TTL` and nothing
+renews it, so repeat this when it does. Use idp mode if you would rather not.
 
 ## Register an agent and send traces
 

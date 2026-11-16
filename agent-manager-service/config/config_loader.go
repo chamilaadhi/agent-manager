@@ -291,6 +291,15 @@ func loadEnvs() {
 		if strings.TrimSpace(config.KeyManagerConfigurations.JWKSUrl) == "" {
 			config.KeyManagerConfigurations.JWKSUrl = fmt.Sprintf("http://localhost:%d/auth/external/jwks.json", config.ServerPort)
 		}
+
+		// In file mode this service issues the tokens it accepts, and there is
+		// no authorization server to send anyone to. Advertising one anyway —
+		// the deployment's identity provider, say — sends amctl and MCP clients
+		// through a sign-in that ends in a token this service then refuses, and
+		// the 401 they get names none of that. The protected-resource metadata
+		// answers "not configured" instead, which is true: obtain a token from
+		// POST /auth/login rather than by discovery.
+		config.OAuthAuthorizationServers = nil
 	}
 
 	// GitHub configuration for repository API access
