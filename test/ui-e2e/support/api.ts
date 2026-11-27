@@ -1,5 +1,5 @@
 import { APIRequestContext, expect, request } from '@playwright/test';
-import { adminPassword, adminUser, baseURL, orgName } from './env';
+import { adminPassword, adminUser, baseURL } from './env';
 
 // A thin API client the specs use to set up their own resources and to read
 // back what the UI did, through a second channel.
@@ -36,8 +36,9 @@ export class AmpApi {
     return `/api/v1/agents/${encodeURIComponent(name)}?project=${encodeURIComponent(project)}`;
   }
 
-  get gw(): string {
-    return `/m/ai-gateway/orgs/${orgName}`;
+  /** Path of one AI Gateway gateway, by name or UUID. */
+  gatewayPath(ref: string): string {
+    return `/m/ai-gateway/gateways/${encodeURIComponent(ref)}`;
   }
 
   async createProject(name: string, displayName = name): Promise<void> {
