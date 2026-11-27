@@ -132,7 +132,7 @@ func Load(get func(key string) string) (Settings, error) {
 			Name:              strings.TrimSpace(r.str("DEFAULT_GATEWAY_NAME", "")),
 			DisplayName:       r.str("DEFAULT_GATEWAY_DISPLAY_NAME", "Default AI Gateway"),
 			Vhost:             r.str("DEFAULT_GATEWAY_VHOST", ""),
-			FunctionalityType: r.str("DEFAULT_GATEWAY_TYPE", "BOTH"),
+			FunctionalityType: r.str("DEFAULT_GATEWAY_TYPE", "EGRESS"),
 			OrgOUID:           r.str("DEFAULT_GATEWAY_ORG_OU_ID", "01900000-0000-7000-8000-000000000001"),
 			Token:             strings.TrimSpace(r.str("DEFAULT_GATEWAY_TOKEN", "")),
 			TokenFile:         r.str("DEFAULT_GATEWAY_TOKEN_FILE", ""),

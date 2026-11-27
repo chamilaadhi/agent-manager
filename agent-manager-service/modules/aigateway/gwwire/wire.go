@@ -81,7 +81,6 @@ var serviceProviderSet = wire.NewSet(
 	gwsvc.NewLLMTemplateStore,
 	gwsvc.NewAIApplicationService,
 	gwsvc.NewAgentGatewayService,
-	gwsvc.NewEnvironmentGatewayService,
 )
 
 var controllerProviderSet = wire.NewSet(
@@ -102,7 +101,6 @@ var controllerProviderSet = wire.NewSet(
 	gwctl.NewMCPProxyScopeController,
 	gwctl.NewAgentIdentityController,
 	gwctl.NewAgentGatewayController,
-	gwctl.NewEnvironmentGatewayController,
 )
 
 // Initialize builds the gateway on the module's database handle and logger,
